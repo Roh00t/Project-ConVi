@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workout Formatter</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(to bottom right, #eff6ff, #e0e7ff);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container { max-width: 896px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 32px; }
+    .header h1 { font-size: 36px; color: #111827; margin-bottom: 8px; }
+    .header p { color: #4b5563; font-size: 18px; }
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: #f3f4f6;
+      padding: 4px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: #4b5563;
+      transition: all 0.2s;
+    }
+    .tab.active {
+      background: white;
+      color: #4f46e5;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #4f46e5;
+    }
+    textarea { resize: vertical; }
+    .hint { font-size: 12px; color: #6b7280; margin-top: 8px; }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #4f46e5;
+      color: white;
+    }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .error {
+      margin-top: 16px;
+      padding: 16px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      color: #78350f;
+      font-size: 14px;
+    }
+    .workout-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 24px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .workout-title { flex: 1; min-width: 250px; }
+    .workout-title h2 {
+      font-size: 24px;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .workout-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+      color: #4b5563;
+      flex-wrap: wrap;
+    }
+    .btn-copy {
+      padding: 8px 16px;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-copy:hover { background: #059669; }
+    .exercise {
+      border-left: 4px solid #6366f1;
+      padding: 12px 0 12px 16px;
+      margin-bottom: 16px;
+    }
+    .exercise h3 {
+      font-size: 18px;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .exercise-detail {
+      font-size: 14px;
+      color: #374151;
+      margin: 4px 0;
+    }
+    .exercise-detail strong { font-weight: 500; }
+    .exercise-notes {
+      font-size: 14px;
+      color: #6b7280;
+      font-style: italic;
+      margin-top: 8px;
+    }
+    .success {
+      margin-top: 24px;
+      padding: 16px;
+      background: linear-gradient(to right, #f0fdf4, #eff6ff);
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #111827;
+    }
+    .hidden { display: none; }
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-connected { background: #10b981; }
+    .status-disconnected { background: #ef4444; }
+    .connection-status {
+      text-align: center;
+      padding: 8px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .connection-status.connected {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .connection-status.disconnected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏋️ Workout Formatter</h1>
+      <p>Convert YouTube videos or text into structured workout plans</p>
+    </div>
+
+    <div class="card">
+      <div id="connectionStatus" class="connection-status disconnected">
+        <span class="status-indicator status-disconnected"></span>
+        Checking backend connection...
+      </div>
+
+      <div class="tabs">
+        <button class="tab" id="tabUrl" onclick="switchMode('url')">📺 YouTube URL</button>
+        <button class="tab active" id="tabManual" onclick="switchMode('manual')">📝 Manual Input</button>
+      </div>
+
+      <div id="urlMode" class="hidden">
+        <label>YouTube Video URL</label>
+        <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/...">
+        <p class="hint">Backend will extract workout details from the video title</p>
+      </div>
+
+      <div id="manualMode">
+        <label>Describe Your Workout</label>
+        <textarea id="workoutInput" rows="6" placeholder="Example: 30 min core workout - plank holds 3x45sec, bicycle crunches 4x20, leg raises 3x15, mountain climbers 3x30sec..."></textarea>
+        <p class="hint">List exercises with sets/reps. AI will format it perfectly for tracking apps.</p>
+      </div>
+
+      <button class="btn btn-primary" id="submitBtn" onclick="handleSubmit()">
+        ✨ Format Workout
+      </button>
+
+      <div id="errorBox" class="error hidden"></div>
+    </div>
+
+    <div id="resultCard" class="card hidden">
+      <div class="workout-header">
+        <div class="workout-title">
+          <h2 id="workoutTitle"></h2>
+          <div class="workout-meta">
+            <span id="workoutDuration"></span>
+            <span id="workoutEquipment"></span>
+          </div>
+        </div>
+        <button class="btn-copy" onclick="copyToClipboard()">📋 Copy for Hevy</button>
+      </div>
+
+      <div id="exerciseList"></div>
+
+      <div class="success">
+        ✅ <strong>Ready!</strong> Your workout is formatted for Hevy, Strong, or any tracking app.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3001';
+    let currentMode = 'manual';
+    let currentWorkout = null;
+
+    // Check backend connection on load
+    async function checkBackendConnection() {
+      try {
+        const response = await fetch(`${API_URL}/`);
+        if (response.ok) {
+          showConnectionStatus(true);
+        } else {
+          showConnectionStatus(false);
+        }
+      } catch (error) {
+        showConnectionStatus(false);
+      }
+    }
+
+    function showConnectionStatus(connected) {
+      const statusEl = document.getElementById('connectionStatus');
+      if (connected) {
+        statusEl.className = 'connection-status connected';
+        statusEl.innerHTML = '<span class="status-indicator status-connected"></span>Backend connected ✓';
+      } else {
+        statusEl.className = 'connection-status disconnected';
+        statusEl.innerHTML = '<span class="status-indicator status-disconnected"></span>Backend not running. Please start the server on port 3001';
+      }
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('tabUrl').classList.toggle('active', mode === 'url');
+      document.getElementById('tabManual').classList.toggle('active', mode === 'manual');
+      document.getElementById('urlMode').classList.toggle('hidden', mode !== 'url');
+      document.getElementById('manualMode').classList.toggle('hidden', mode !== 'manual');
+      hideError();
+    }
+
+    function showError(message) {
+      const errorBox = document.getElementById('errorBox');
+      errorBox.textContent = '⚠️ ' + message;
+      errorBox.classList.remove('hidden');
+    }
+
+    function hideError() {
+      document.getElementById('errorBox').classList.add('hidden');
+    }
+
+    function setLoading(loading, message = 'Processing...') {
+      const btn = document.getElementById('submitBtn');
+      if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner"></span>${message}`;
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = '✨ Format Workout';
+      }
+    }
+
+    async function handleSubmit() {
+      hideError();
+      
+      const payload = {};
+      
+      if (currentMode === 'url') {
+        const url = document.getElementById('videoUrl').value.trim();
+        if (!url) {
+          showError('Please enter a video URL');
+          return;
+        }
+        payload.url = url;
+        setLoading(true, 'Extracting from video...');
+      } else {
+        const input = document.getElementById('workoutInput').value.trim();
+        if (!input) {
+          showError('Please describe the workout');
+          return;
+        }
+        payload.input = input;
+        setLoading(true, 'Formatting workout...');
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/extract-workout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to process workout');
+        }
+
+        if (!data.exercises || data.exercises.length === 0) {
+          showError('No exercises found. Please provide more details.');
+          return;
+        }
+
+        displayWorkout(data);
+      } catch (error) {
+        console.error('Error:', error);
+        if (error.message.includes('Failed to fetch')) {
+          showError('Cannot connect to backend server. Make sure it\'s running on http://localhost:3001');
+        } else {
+          showError(error.message || 'Failed to process workout. Please try again.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function displayWorkout(workout) {
+      currentWorkout = workout;
+      
+      document.getElementById('workoutTitle').textContent = workout.title;
+      document.getElementById('workoutDuration').textContent = '⏱️ ' + workout.duration;
+      document.getElementById('workoutEquipment').textContent = '🏋️ ' + (Array.isArray(workout.equipment) ? workout.equipment.join(', ') : workout.equipment);
+
+      const exerciseList = document.getElementById('exerciseList');
+      exerciseList.innerHTML = workout.exercises.map((exercise, index) => `
+        <div class="exercise">
+          <h3>${index + 1}. ${exercise.name}</h3>
+          ${exercise.sets && exercise.sets !== 'N/A' ? `<div class="exercise-detail"><strong>Sets:</strong> ${exercise.sets}</div>` : ''}
+          ${exercise.reps && exercise.reps !== 'N/A' ? `<div class="exercise-detail"><strong>Reps:</strong> ${exercise.reps}</div>` : ''}
+          ${exercise.notes ? `<div class="exercise-notes">💡 ${exercise.notes}</div>` : ''}
+        </div>
+      `).join('');
+
+      document.getElementById('resultCard').classList.remove('hidden');
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function copyToClipboard() {
+      if (!currentWorkout) return;
+
+      let text = `${currentWorkout.title}\n`;
+      text += `Duration: ${currentWorkout.duration}\n`;
+      text += `Equipment: ${Array.isArray(currentWorkout.equipment) ? currentWorkout.equipment.join(', ') : currentWorkout.equipment}\n\n`;
+      
+      currentWorkout.exercises.forEach((exercise, index) => {
+        text += `${index + 1}. ${exercise.name}\n`;
+        if (exercise.sets && exercise.sets !== 'N/A') text += `   Sets: ${exercise.sets}\n`;
+        if (exercise.reps && exercise.reps !== 'N/A') text += `   Reps: ${exercise.reps}\n`;
+        if (exercise.notes) text += `   Notes: ${exercise.notes}\n`;
+        text += '\n';
+      });
+
+      navigator.clipboard.writeText(text);
+      
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => {
+        btn.textContent = originalText;
+      }, 2000);
+    }
+
+    // Check connection on page load
+    checkBackendConnection();
+  </script>
+</body>
+</html>

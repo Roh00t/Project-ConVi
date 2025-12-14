@@ -1,0 +1,15 @@
+{
+  "name": "workout-formatter",
+  "version": "1.0.0",
+  "description": "Convert YouTube workout videos to structured plans",
+  "main": "backend.js",
+  "scripts": {
+    "start": "node backend.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "youtube-transcript": "^1.2.1"
+  }
+}
